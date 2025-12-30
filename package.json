@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "worker": "node src/workers/ingest.worker.js",
+    "worker:dev": "nodemon src/workers/ingest.worker.js"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +17,8 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "ioredis": "^5.8.2"
+    "ioredis": "^5.8.2",
+    "pg": "^8.13.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
