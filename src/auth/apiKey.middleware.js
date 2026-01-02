@@ -1,7 +1,8 @@
 
 import crypto from "crypto";
+import { env } from "../config/env.js";
 
-const API_KEY = process.env.INVAR_API_KEY;
+const API_KEY = env.apiKey || process.env.INVAR_API_KEY;
 
 // Constant-time string comparison to prevent timing attacks
 function secureCompare(a, b) {
@@ -14,15 +15,33 @@ function secureCompare(a, b) {
   return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 
-export function requireApiKey(req, res, next) {
-  // Extract key from X-Api-Key or Authorization: Bearer <key>
+function getApiKeyFromRequest(req) {
+  // Header forms
   const keyFromHeader = req.headers["x-api-key"];
   const authHeader = req.headers["authorization"];
   const keyFromAuth = authHeader?.startsWith("Bearer ")
     ? authHeader.slice(7)
     : null;
 
-  const providedKey = keyFromHeader || keyFromAuth;
+  // Cookie form: parse simple cookie header for `invar_api_key`
+  const cookieHeader = req.headers["cookie"];
+  let keyFromCookie = null;
+  if (cookieHeader) {
+    const pairs = cookieHeader.split(";").map((c) => c.trim());
+    for (const p of pairs) {
+      const [k, ...rest] = p.split("=");
+      if (k === "invar_api_key") {
+        keyFromCookie = decodeURIComponent(rest.join("="));
+        break;
+      }
+    }
+  }
+
+  return keyFromHeader || keyFromAuth || keyFromCookie;
+}
+
+export function requireApiKey(req, res, next) {
+  const providedKey = getApiKeyFromRequest(req);
 
   if (!providedKey) {
     return res.status(401).json({ error: "missing API key" });
@@ -34,4 +53,8 @@ export function requireApiKey(req, res, next) {
 
   // Key valid, continue to handler
   next();
+}
+
+export function extractApiKey(req) {
+  return getApiKeyFromRequest(req);
 }
