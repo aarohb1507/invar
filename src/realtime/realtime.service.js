@@ -37,11 +37,12 @@ function reqCloseHandler(res, id) {
 
 export function sendEvent(payload) {
   const data = typeof payload === "string" ? payload : JSON.stringify(payload);
+  console.log(`[realtime] broadcasting to ${clients.size} clients:`, data);
   for (const [, res] of clients) {
     try {
       res.write(`data: ${data}\n\n`);
     } catch (err) {
-      // ignore write errors per-client
+      console.error(`[realtime] write error:`, err.message);
     }
   }
 }
@@ -50,16 +51,21 @@ export async function startRealtime() {
   try {
     subscriber = redis.duplicate();
     await subscriber.connect();
+    console.log(`[realtime] subscriber connected`);
 
-    await subscriber.subscribe(CHANNEL, (message, channel) => {
+    // Use .on('message') handler instead of callback in subscribe
+    subscriber.on("message", (channel, message) => {
+      console.log(`[realtime] received message on ${channel}:`, message);
       try {
         const parsed = JSON.parse(message);
         sendEvent(parsed);
       } catch (err) {
+        console.error(`[realtime] parse error:`, err.message);
         sendEvent(message);
       }
     });
 
+    await subscriber.subscribe(CHANNEL);
     console.log(`[realtime] subscribed to ${CHANNEL}`);
   } catch (err) {
     console.error("[realtime] failed to start subscriber:", err.message);

@@ -17,8 +17,9 @@ function samplePayload() {
 async function publishOnce() {
   const payload = samplePayload();
   const data = JSON.stringify(payload);
+  const receivedAt = new Date().toISOString();
   // XADD to stream (durable)
-  await redis.xadd(STREAM, "*", "payload", data, "timestamp", String(payload.timestamp));
+  await redis.xadd(STREAM, "*", "payload", data, "timestamp", String(payload.timestamp), "receivedAt", receivedAt);
   // PUBLISH for realtime delivery
   await redis.publish(CHANNEL, data);
   console.log("published", payload);

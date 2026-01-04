@@ -32,7 +32,7 @@ export async function queryMetrics({
         payload,
         timestamp,
         received_at,
-        created_at
+        ingested_at
        FROM metrics
        WHERE timestamp BETWEEN $1 AND $2
        AND payload->>'metric' = $3

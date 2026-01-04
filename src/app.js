@@ -8,6 +8,9 @@ export const app = express();
 
 app.use(express.json());
 
+// Serve demo folder
+app.use(express.static('demo'));
+
 app.use("/v1/ingest", ingestRouter);
 app.use("/v1/metrics", queryRouter);
 app.use("/v1/metrics/live", realtimeRouter);

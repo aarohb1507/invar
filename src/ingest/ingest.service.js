@@ -44,13 +44,8 @@ async function processIngestAsync(event) {
       "receivedAt", event.receivedAt
     );
 
-    await redis.publish(
-      CHANNEL_NAME,
-      JSON.stringify({
-        streamId,
-        timestamp: event.timestamp,
-      })
-    );
+    // Publish full payload for realtime
+    await redis.publish(CHANNEL_NAME, event.payload);
 
     console.log(`[ingest] processed ${streamId}`);
   } catch (err) {

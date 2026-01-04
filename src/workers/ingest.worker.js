@@ -195,6 +195,7 @@ function sleep(ms) {
  * Start the worker
  */
 async function start() {
+  console.log("[worker] starting up...");
   try {
     await initConsumerGroup();
     setupShutdownHandlers();
@@ -206,8 +207,9 @@ async function start() {
 }
 
 // Run if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  start();
-}
+start().catch(err => {
+  console.error("[worker] startup failed:", err);
+  process.exit(1);
+});
 
 export { start };
