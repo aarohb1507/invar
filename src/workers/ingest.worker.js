@@ -95,7 +95,7 @@ async function processMessage(streamId, fields) {
     await pool.query(
       `INSERT INTO metrics (payload, timestamp, received_at) 
        VALUES ($1, $2, $3)`,
-      [payload, parseInt(timestamp), receivedAt]
+      [payload, parseInt(timestamp), receivedAt || new Date().toISOString()]
     );
 
     // Acknowledge (remove from stream)
@@ -104,7 +104,7 @@ async function processMessage(streamId, fields) {
     console.log(`[worker] processed ${streamId}`);
     
   } catch (err) {
-    console.error(`[worker] failed to process ${streamId}:`, err.message);
+    console.error(`[worker] failed to process ${streamId}:`, err.message, err);
     
     // Check retry count
     const retryCount = await getRetryCount(streamId);

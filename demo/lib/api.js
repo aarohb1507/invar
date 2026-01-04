@@ -70,7 +70,10 @@ export const API = {
   async authenticate() {
     const response = await fetch(`${this.baseUrl}/auth/session`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': 'wq189pVNe9S5UueiA6Vy6nc//0giEH33YdoAf0OxeUk=',
+      },
       credentials: 'include', // Accept cookies
     });
 
