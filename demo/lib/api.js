@@ -1,4 +1,6 @@
 // API Client - Handles all requests to Invar backend with cookie auth
+import dotenv from "dotenv";
+dotenv.config();
 
 export const API = {
   baseUrl: 'http://localhost:3000/v1',
@@ -72,7 +74,7 @@ export const API = {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'x-api-key': 'wq189pVNe9S5UueiA6Vy6nc//0giEH33YdoAf0OxeUk=',
+        'x-api-key': process.env.INVAR_API_KEY || '',
       },
       credentials: 'include', // Accept cookies
     });
