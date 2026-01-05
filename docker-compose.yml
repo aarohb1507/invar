@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    image: invar/web:latest
+    restart: unless-stopped
+    env_file:
+      - ./.env.production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build: .
+    image: invar/worker:latest
+    restart: unless-stopped
+    env_file:
+      - ./.env.production
+    depends_on:
+      - redis
+      - postgres
+    command: ["node", "src/workers/ingest.worker.js"]
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-invar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-invar}
+      POSTGRES_DB: ${POSTGRES_DB:-invar}
+    env_file:
+      - ./.env.production
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  redis-data:
+  pgdata:
