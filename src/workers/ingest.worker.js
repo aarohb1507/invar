@@ -59,7 +59,12 @@ async function processStream() {
         "STREAMS", STREAM_NAME, "0" // "0" means "pending messages"
       );
 
-      if (pendingResults && pendingResults.length > 0) {
+      // Check if there are actually pending messages to process
+      const hasPendingMessages = pendingResults &&
+        pendingResults.length > 0 &&
+        pendingResults[0][1].length > 0;
+
+      if (hasPendingMessages) {
         console.log(`[worker] recovering ${pendingResults[0][1].length} pending messages...`);
         for (const [stream, messages] of pendingResults) {
           for (const [streamId, fields] of messages) {
@@ -111,13 +116,16 @@ async function processMessage(streamId, fields) {
   const { payload, timestamp, receivedAt } = data;
 
   try {
+    // Parse payload string as JSON for Postgres JSONB type
+    const payloadObj = JSON.parse(payload);
+
     // Write to PostgreSQL (Idempotent Insert)
     // ON CONFLICT (stream_id) DO NOTHING ensures we don't insert duplicates on retry
     await pool.query(
       `INSERT INTO metrics (stream_id, payload, timestamp, received_at) 
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (stream_id) DO NOTHING`,
-      [streamId, payload, parseInt(timestamp), receivedAt || new Date().toISOString()]
+      [streamId, payloadObj, parseInt(timestamp), receivedAt || new Date().toISOString()]
     );
 
     // Acknowledge (remove from stream)
@@ -126,7 +134,10 @@ async function processMessage(streamId, fields) {
     // console.log(`[worker] processed ${streamId}`);
 
   } catch (err) {
-    console.error(`[worker] failed to process ${streamId}:`, err.message);
+    console.error(`[worker] failed to process ${streamId}:`, err.message || err);
+    if (err.stack) {
+      console.error(err.stack);
+    }
 
     // Check retry count
     const retryCount = await getRetryCount(streamId);

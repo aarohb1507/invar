@@ -1,6 +1,7 @@
 /**
  * Main App - Orchestrates dashboard components
  * Redesigned for recruiter-impressive demo
+ * Demo Mode: No authentication required
  */
 
 import { API } from './lib/api.js';
@@ -13,17 +14,10 @@ import { EventFeed } from './components/event-feed.js';
 let eventSource = null;
 
 async function init() {
-  console.log('[app] initializing dashboard...');
+  console.log('[app] initializing dashboard in demo mode...');
 
-  // Authenticate first
-  try {
-    await API.authenticate();
-    console.log('[app] authenticated');
-  } catch (err) {
-    console.error('[app] auth failed:', err);
-    alert('Authentication failed. Please refresh and enter a valid API key.');
-    return;
-  }
+  // Skip authentication for demo mode
+  // In production, you would call: await API.authenticate();
 
   // Initialize components
   SummaryCards.init();

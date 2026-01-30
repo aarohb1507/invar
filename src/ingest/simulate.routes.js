@@ -1,9 +1,9 @@
 /**
  * Simulation Routes - Control mock data generation
+ * Public access for demo purposes
  */
 
 import express from 'express';
-import { requireSession } from '../auth/session.middleware.js';
 import {
     startSimulation,
     stopSimulation,
@@ -12,9 +12,6 @@ import {
 } from './simulate.service.js';
 
 const simulateRouter = express.Router();
-
-// All simulation routes require session (not API key)
-simulateRouter.use(requireSession);
 
 // POST /v1/ingest/simulate/start
 simulateRouter.post('/start', (req, res) => {

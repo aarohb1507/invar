@@ -1,157 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Invar - Real-time Metrics Dashboard</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  </head>
-  <body>
-    <!-- Header -->
-    <header class="header">
-      <div class="container">
-        <h1 class="header__title">⚡ Invar Metrics Dashboard</h1>
-        <p class="header__subtitle">
-          Hot Path (Redis Streams → SSE) • Cold Path (Worker → Postgres)
-        </p>
-      </div>
-    </header>
 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invar - Real-time Metrics Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
     <div class="container">
-      <!-- Summary Cards -->
-      <div class="summary">
-        <div class="summary__card">
-          <div class="summary__icon">📊</div>
-          <div class="summary__content">
-            <div class="summary__label">Ingestion Rate</div>
-            <div class="summary__value" id="ingestionRate">0</div>
-            <div class="summary__unit">events/sec</div>
-          </div>
-        </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <h1 class="header__title">⚡ Invar Metrics Dashboard</h1>
+        <span class="demo-badge">DEMO MODE</span>
+      </div>
+      <p class="header__subtitle">
+        Hot Path (Redis Streams → SSE) • Cold Path (Worker → Postgres)
+      </p>
+    </div>
+  </header>
 
-        <div class="summary__card">
-          <div class="summary__icon">⏱️</div>
-          <div class="summary__content">
-            <div class="summary__label">Real-time Lag</div>
-            <div class="summary__value" id="pendingMessages">0</div>
-            <div class="summary__unit">pending msg</div>
-          </div>
-        </div>
-
-        <div class="summary__card">
-          <div class="summary__icon">⚙️</div>
-          <div class="summary__content">
-            <div class="summary__label">Worker Status</div>
-            <div class="summary__value summary__value--status" id="workerStatus">OK</div>
-            <div class="summary__unit">processing</div>
-          </div>
-        </div>
-
-        <div class="summary__card">
-          <div class="summary__icon">💾</div>
-          <div class="summary__content">
-            <div class="summary__label">Cold Storage</div>
-            <div class="summary__value" id="coldStorageWrites">0</div>
-            <div class="summary__unit">rows/min</div>
-          </div>
+  <div class="container">
+    <!-- Summary Cards -->
+    <div class="summary">
+      <div class="summary__card">
+        <div class="summary__icon">📊</div>
+        <div class="summary__content">
+          <div class="summary__label">Ingestion Rate</div>
+          <div class="summary__value" id="ingestionRate">0</div>
+          <div class="summary__unit">events/sec</div>
         </div>
       </div>
 
-      <!-- Charts Section -->
-      <div class="charts">
-        <!-- Chart A: Real-Time Metrics (Hot Path) -->
-        <div class="card">
-          <div class="card__header">
-            <h2 class="card__title">📈 Real-Time Metrics (Hot Path)</h2>
-            <div class="card__tabs" id="metricTabs">
-              <button class="tab tab--active" data-metric="cpu">CPU</button>
-              <button class="tab" data-metric="memory">Memory</button>
-              <button class="tab" data-metric="disk">Disk</button>
-            </div>
-          </div>
-          <div class="card__body">
-            <canvas id="realtimeChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Chart B: Worker Backlog (Cold Path) -->
-        <div class="card">
-          <div class="card__header">
-            <h2 class="card__title">📦 Worker Backlog (Cold Path)</h2>
-          </div>
-          <div class="card__body">
-            <canvas id="backlogChart"></canvas>
-          </div>
+      <div class="summary__card">
+        <div class="summary__icon">⏱️</div>
+        <div class="summary__content">
+          <div class="summary__label">Real-time Lag</div>
+          <div class="summary__value" id="pendingMessages">0</div>
+          <div class="summary__unit">pending msg</div>
         </div>
       </div>
 
-      <!-- Controls -->
-      <div class="controls">
-        <button class="btn btn--primary" id="startSimBtn">
-          <span class="btn__icon">▶️</span>
-          <span class="btn__text">Start Simulation</span>
-          <span class="btn__tooltip">Generate mock CPU/Memory/Disk metrics at 10 events/sec</span>
-        </button>
-
-        <button class="btn btn--warning" id="injectErrorBtn">
-          <span class="btn__icon">⚠️</span>
-          <span class="btn__text">Inject Error</span>
-          <span class="btn__tooltip">Simulate worker failure - backlog will grow</span>
-        </button>
-
-        <button class="btn btn--secondary" id="queryHistoryBtn">
-          <span class="btn__icon">🔍</span>
-          <span class="btn__text">Query History</span>
-          <span class="btn__tooltip">Fetch last 100 metrics from Postgres</span>
-        </button>
-      </div>
-
-      <!-- History Table (Collapsible) -->
-      <div class="history" id="historyPanel" style="display: none;">
-        <div class="card">
-          <div class="card__header">
-            <h2 class="card__title">📋 Query History</h2>
-            <button class="btn btn--small" id="closeHistoryBtn">✕</button>
-          </div>
-          <div class="card__body">
-            <div class="table-container">
-              <table class="table" id="historyTable">
-                <thead>
-                  <tr>
-                    <th>Timestamp</th>
-                    <th>Metric</th>
-                    <th>Value</th>
-                    <th>Server</th>
-                    <th>Stream ID</th>
-                  </tr>
-                </thead>
-                <tbody id="historyTableBody">
-                  <tr>
-                    <td colspan="5" class="table__empty">Click "Query History" to load data</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+      <div class="summary__card">
+        <div class="summary__icon">⚙️</div>
+        <div class="summary__content">
+          <div class="summary__label">Worker Status</div>
+          <div class="summary__value summary__value--status" id="workerStatus">OK</div>
+          <div class="summary__unit">processing</div>
         </div>
       </div>
 
-      <!-- Real-time Event Feed -->
+      <div class="summary__card">
+        <div class="summary__icon">💾</div>
+        <div class="summary__content">
+          <div class="summary__label">Cold Storage</div>
+          <div class="summary__value" id="coldStorageWrites">0</div>
+          <div class="summary__unit">rows/min</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts">
+      <!-- Chart A: Real-Time Metrics (Hot Path) -->
       <div class="card">
         <div class="card__header">
-          <h2 class="card__title">⚡ Live Event Feed</h2>
-          <button class="btn btn--small" id="clearFeedBtn">Clear</button>
+          <h2 class="card__title">📈 Real-Time Metrics (Hot Path)</h2>
+          <div class="card__tabs" id="metricTabs">
+            <button class="tab tab--active" data-metric="cpu">CPU</button>
+            <button class="tab" data-metric="memory">Memory</button>
+            <button class="tab" data-metric="disk">Disk</button>
+          </div>
         </div>
         <div class="card__body">
-          <div class="feed" id="eventFeed">
-            <div class="feed__empty">Waiting for events...</div>
+          <canvas id="realtimeChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart B: Worker Backlog (Cold Path) -->
+      <div class="card">
+        <div class="card__header">
+          <h2 class="card__title">📦 Worker Backlog (Cold Path)</h2>
+        </div>
+        <div class="card__body">
+          <canvas id="backlogChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn btn--primary" id="startSimBtn">
+        <span class="btn__icon">▶️</span>
+        <span class="btn__text">Start Simulation</span>
+        <span class="btn__tooltip">Generate mock CPU/Memory/Disk metrics at 10 events/sec</span>
+      </button>
+
+      <button class="btn btn--warning" id="injectErrorBtn">
+        <span class="btn__icon">⚠️</span>
+        <span class="btn__text">Inject Error</span>
+        <span class="btn__tooltip">Simulate worker failure - backlog will grow</span>
+      </button>
+
+      <button class="btn btn--secondary" id="queryHistoryBtn">
+        <span class="btn__icon">🔍</span>
+        <span class="btn__text">Query History</span>
+        <span class="btn__tooltip">Fetch last 100 metrics from Postgres</span>
+      </button>
+    </div>
+
+    <!-- History Table (Collapsible) -->
+    <div class="history" id="historyPanel" style="display: none;">
+      <div class="card">
+        <div class="card__header">
+          <h2 class="card__title">📋 Query History</h2>
+          <button class="btn btn--small" id="closeHistoryBtn">✕</button>
+        </div>
+        <div class="card__body">
+          <div class="table-container">
+            <table class="table" id="historyTable">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Metric</th>
+                  <th>Value</th>
+                  <th>Server</th>
+                  <th>Stream ID</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr>
+                  <td colspan="5" class="table__empty">Click "Query History" to load data</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Load app -->
-    <script type="module" src="app.js"></script>
-  </body>
+    <!-- Real-time Event Feed -->
+    <div class="card">
+      <div class="card__header">
+        <h2 class="card__title">⚡ Live Event Feed</h2>
+        <button class="btn btn--small" id="clearFeedBtn">Clear</button>
+      </div>
+      <div class="card__body">
+        <div class="feed" id="eventFeed">
+          <div class="feed__empty">Waiting for events...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load app -->
+  <script type="module" src="app.js"></script>
+</body>
+
 </html>

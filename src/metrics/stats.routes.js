@@ -1,14 +1,12 @@
 /**
  * Stats Routes - Dashboard statistics API
+ * Public access for demo purposes
  */
 
 import express from 'express';
-import { requireSession } from '../auth/session.middleware.js';
 import { getDashboardStats } from './stats.service.js';
 
 const statsRouter = express.Router();
-
-statsRouter.use(requireSession);
 
 // GET /v1/metrics/stats
 statsRouter.get('/', async (req, res) => {
