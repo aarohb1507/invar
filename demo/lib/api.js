@@ -1,6 +1,4 @@
 // API Client - Handles all requests to Invar backend with cookie auth
-import dotenv from "dotenv";
-dotenv.config();
 
 export const API = {
   baseUrl: 'http://localhost:3000/v1',
@@ -68,18 +66,105 @@ export const API = {
     return response.json();
   },
 
+  // Get dashboard stats (NEW)
+  async getDashboardStats() {
+    const response = await fetch(`${this.baseUrl}/metrics/stats`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Get stats failed: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Start simulation (NEW)
+  async startSimulation() {
+    const response = await fetch(`${this.baseUrl}/ingest/simulate/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Start simulation failed: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Stop simulation (NEW)
+  async stopSimulation() {
+    const response = await fetch(`${this.baseUrl}/ingest/simulate/stop`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Stop simulation failed: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Get simulation status (NEW)
+  async getSimulationStatus() {
+    const response = await fetch(`${this.baseUrl}/ingest/simulate/status`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Get simulation status failed: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Inject error (NEW)
+  async injectError() {
+    const response = await fetch(`${this.baseUrl}/ingest/simulate/error`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Inject error failed: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
   // Authenticate and set cookie
   async authenticate() {
+    // Get API key from prompt or localStorage
+    let apiKey = localStorage.getItem('invar_api_key');
+
+    if (!apiKey) {
+      apiKey = prompt('Enter your Invar API key:');
+      if (!apiKey) {
+        throw new Error('API key required');
+      }
+      localStorage.setItem('invar_api_key', apiKey);
+    }
+
     const response = await fetch(`${this.baseUrl}/auth/session`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.INVAR_API_KEY || '',
+        'x-api-key': apiKey,
       },
       credentials: 'include', // Accept cookies
     });
 
     if (!response.ok) {
+      localStorage.removeItem('invar_api_key');
       throw new Error(`Authentication failed: ${response.status}`);
     }
 
