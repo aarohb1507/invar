@@ -148,6 +148,8 @@ async function processMessage(streamId, fields) {
       await redis.xack(STREAM_NAME, CONSUMER_GROUP, streamId);
     } else {
       console.warn(`[worker] will retry ${streamId} (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+      // Wait before next attempt/batch to simulate backoff and backlog
+      await sleep(2000);
     }
   }
 }
