@@ -7,6 +7,7 @@
 -- Metrics table (cold storage)
 CREATE TABLE IF NOT EXISTS metrics (
   id BIGSERIAL PRIMARY KEY,
+  stream_id TEXT UNIQUE, -- Idempotency key
   payload JSONB NOT NULL,
   timestamp BIGINT NOT NULL,
   received_at TIMESTAMPTZ NOT NULL,

@@ -48,27 +48,47 @@ async function initConsumerGroup() {
  */
 async function processStream() {
   console.log(`[worker] ${CONSUMER_NAME} started`);
-  
+
   while (!isShuttingDown) {
     try {
-      // Read from stream (blocking)
-      const results = await redis.xreadgroup(
+      // 1. First, check for pending messages (recovery mode)
+      // Read messages that this consumer has already read but not ACKed
+      const pendingResults = await redis.xreadgroup(
+        "GROUP", CONSUMER_GROUP, CONSUMER_NAME,
+        "COUNT", BATCH_SIZE,
+        "STREAMS", STREAM_NAME, "0" // "0" means "pending messages"
+      );
+
+      if (pendingResults && pendingResults.length > 0) {
+        console.log(`[worker] recovering ${pendingResults[0][1].length} pending messages...`);
+        for (const [stream, messages] of pendingResults) {
+          for (const [streamId, fields] of messages) {
+            await processMessage(streamId, fields);
+          }
+        }
+        // If we found pending work, continue immediately to process more pending items
+        continue;
+      }
+
+      // 2. If no pending work, read new messages
+      const newResults = await redis.xreadgroup(
         "GROUP", CONSUMER_GROUP, CONSUMER_NAME,
         "BLOCK", BLOCK_TIME,
         "COUNT", BATCH_SIZE,
-        "STREAMS", STREAM_NAME, ">"
+        "STREAMS", STREAM_NAME, ">" // ">" means "new messages"
       );
 
-      if (!results || results.length === 0) {
-        continue; // No new messages
+      if (!newResults || newResults.length === 0) {
+        continue; // Idle
       }
 
-      // Process batch
-      for (const [stream, messages] of results) {
+      // Process new batch
+      for (const [stream, messages] of newResults) {
         for (const [streamId, fields] of messages) {
           await processMessage(streamId, fields);
         }
       }
+
     } catch (err) {
       console.error("[worker] error reading stream:", err.message);
       await sleep(5000); // Backoff before retry
@@ -89,32 +109,33 @@ async function processMessage(streamId, fields) {
   }
 
   const { payload, timestamp, receivedAt } = data;
-  
+
   try {
-    // Write to PostgreSQL
+    // Write to PostgreSQL (Idempotent Insert)
+    // ON CONFLICT (stream_id) DO NOTHING ensures we don't insert duplicates on retry
     await pool.query(
-      `INSERT INTO metrics (payload, timestamp, received_at) 
-       VALUES ($1, $2, $3)`,
-      [payload, parseInt(timestamp), receivedAt || new Date().toISOString()]
+      `INSERT INTO metrics (stream_id, payload, timestamp, received_at) 
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (stream_id) DO NOTHING`,
+      [streamId, payload, parseInt(timestamp), receivedAt || new Date().toISOString()]
     );
 
     // Acknowledge (remove from stream)
     await redis.xack(STREAM_NAME, CONSUMER_GROUP, streamId);
-    
-    console.log(`[worker] processed ${streamId}`);
-    
+
+    // console.log(`[worker] processed ${streamId}`);
+
   } catch (err) {
-    console.error(`[worker] failed to process ${streamId}:`, err.message, err);
-    
+    console.error(`[worker] failed to process ${streamId}:`, err.message);
+
     // Check retry count
     const retryCount = await getRetryCount(streamId);
-    
+
     if (retryCount >= MAX_RETRIES) {
       // Move to DLQ
       await moveToDLQ(streamId, data, err.message);
       await redis.xack(STREAM_NAME, CONSUMER_GROUP, streamId);
     } else {
-      // Don't ACK - will be retried by claiming pending messages
       console.warn(`[worker] will retry ${streamId} (attempt ${retryCount + 1}/${MAX_RETRIES})`);
     }
   }
@@ -128,7 +149,7 @@ async function getRetryCount(streamId) {
     const pending = await redis.xpending(
       STREAM_NAME, CONSUMER_GROUP, "-", "+", 1, CONSUMER_NAME
     );
-    
+
     if (pending && pending.length > 0) {
       const [id, consumer, idleTime, deliveryCount] = pending[0];
       if (id === streamId) {
@@ -138,7 +159,7 @@ async function getRetryCount(streamId) {
   } catch (err) {
     console.error("[worker] error checking retry count:", err.message);
   }
-  
+
   return 0;
 }
 
@@ -156,7 +177,7 @@ async function moveToDLQ(streamId, data, errorMsg) {
       "error", errorMsg,
       "failed_at", Date.now()
     );
-    
+
     console.error(`[worker] moved to DLQ: ${streamId}`);
   } catch (err) {
     console.error("[worker] failed to write to DLQ:", err.message);
@@ -170,13 +191,13 @@ function setupShutdownHandlers() {
   const shutdown = async (signal) => {
     console.log(`[worker] received ${signal}, shutting down...`);
     isShuttingDown = true;
-    
+
     // Give worker time to finish current batch
     await sleep(6000);
-    
+
     await redis.quit();
     await pool.end();
-    
+
     process.exit(0);
   };
 
