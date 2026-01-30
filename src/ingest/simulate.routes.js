@@ -8,7 +8,8 @@ import {
     startSimulation,
     stopSimulation,
     getSimulationStatus,
-    injectError
+    enableErrorInjection,
+    disableErrorInjection
 } from './simulate.service.js';
 
 const simulateRouter = express.Router();
@@ -37,9 +38,15 @@ simulateRouter.get('/status', (req, res) => {
     return res.json(status);
 });
 
-// POST /v1/ingest/simulate/error
-simulateRouter.post('/error', async (req, res) => {
-    const result = await injectError();
+// POST /v1/ingest/simulate/error/enable
+simulateRouter.post('/error/enable', (req, res) => {
+    const result = enableErrorInjection();
+    return res.json(result);
+});
+
+// POST /v1/ingest/simulate/error/disable
+simulateRouter.post('/error/disable', (req, res) => {
+    const result = disableErrorInjection();
     return res.json(result);
 });
 
