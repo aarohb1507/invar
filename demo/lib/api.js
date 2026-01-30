@@ -1,7 +1,7 @@
 // API Client - Handles all requests to Invar backend with cookie auth
 
 export const API = {
-  baseUrl: 'http://localhost:3000/v1',
+  baseUrl: '/v1',
 
   // Get historical metrics from Postgres
   async queryMetrics({ startTime, endTime, metric, limit = 100, offset = 0 }) {
