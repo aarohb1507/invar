@@ -153,25 +153,32 @@ async function processMessage(streamId, fields) {
 }
 
 /**
- * Get retry count for a message
+ * Get retry count for a specific message
+ * CRITICAL FIX: Query for the specific message, not just any pending message
  */
 async function getRetryCount(streamId) {
   try {
+    // Get ALL pending messages for this consumer group
+    // Then find the specific message we're looking for
     const pending = await redis.xpending(
-      STREAM_NAME, CONSUMER_GROUP, "-", "+", 1, CONSUMER_NAME
+      STREAM_NAME,
+      CONSUMER_GROUP,
+      streamId,      // Start from this specific ID
+      streamId,      // End at this specific ID
+      1              // Limit to 1 result
     );
 
     if (pending && pending.length > 0) {
       const [id, consumer, idleTime, deliveryCount] = pending[0];
-      if (id === streamId) {
-        return deliveryCount;
-      }
+      console.log(`[worker] retry check for ${streamId}: deliveryCount=${deliveryCount}`);
+      return deliveryCount;
     }
   } catch (err) {
-    console.error("[worker] error checking retry count:", err.message);
+    console.error(`[worker] error checking retry count for ${streamId}:`, err.message);
   }
 
-  return 0;
+  // If not found in pending, it's a first attempt
+  return 1; // First delivery
 }
 
 /**

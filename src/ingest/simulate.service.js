@@ -8,9 +8,9 @@
  */
 
 import { ingestMetric } from './ingest.service.js';
+import { State } from '../lib/state.js';
 
 let simulationInterval = null;
-let isSimulating = false;
 
 // State for random walk
 const metricState = {
@@ -56,36 +56,44 @@ function generateMetric() {
 }
 
 /**
- * Start simulation (generates metrics at ~10 events/sec)
+ * Start simulation (generates metrics at configurable rate)
  */
 export function startSimulation() {
-    if (isSimulating) {
+    if (State.isSimulating()) {
         return { success: false, error: 'Simulation already running' };
     }
 
-    console.log('[simulate] starting metric generation...');
-    isSimulating = true;
+    // Get simulation rate from env (default 500ms = 2 events/sec)
+    const rateMs = parseInt(process.env.SIMULATION_RATE_MS) || 500;
+    const eventsPerSec = (1000 / rateMs).toFixed(1);
+
+    console.log(`[simulate] starting metric generation at ${eventsPerSec} events/sec...`);
+    State.setSimulating(true);
 
     simulationInterval = setInterval(async () => {
         const payload = generateMetric();
         await ingestMetric(payload);
-    }, 100); // 10 events/sec
+        State.incrementEventCount();
+    }, rateMs);
 
-    return { success: true, message: 'Simulation started' };
+    return {
+        success: true,
+        message: `Simulation started at ${eventsPerSec} events/sec`
+    };
 }
 
 /**
  * Stop simulation
  */
 export function stopSimulation() {
-    if (!isSimulating) {
+    if (!State.isSimulating()) {
         return { success: false, error: 'No simulation running' };
     }
 
     console.log('[simulate] stopping metric generation...');
     clearInterval(simulationInterval);
     simulationInterval = null;
-    isSimulating = false;
+    State.setSimulating(false);
 
     return { success: true, message: 'Simulation stopped' };
 }
@@ -94,27 +102,56 @@ export function stopSimulation() {
  * Get simulation status
  */
 export function getSimulationStatus() {
-    return { isSimulating };
+    return {
+        isSimulating: State.isSimulating(),
+        errorInjectionMode: State.isErrorInjectionEnabled(),
+        stats: State.getStats(),
+    };
 }
 
 /**
- * Inject error simulation (generates invalid data)
+ * Enable error injection mode
+ * This will cause 50% of events to be malformed, creating backlog
  */
-export async function injectError() {
-    console.log('[simulate] injecting error...');
-
-    // Send malformed payload to trigger worker retry logic
-    const corruptedPayload = {
-        metric: 'cpu',
-        value: 'INVALID_VALUE', // This will cause parsing issues
-        server: 'error-injector',
-        timestamp: 'INVALID_TIMESTAMP',
-    };
-
-    await ingestMetric(corruptedPayload);
+export function enableErrorInjection() {
+    console.log('[simulate] enabling error injection mode...');
+    State.enableErrorInjection();
 
     return {
         success: true,
-        message: 'Error injected - check worker logs for retry behavior'
+        message: 'Error injection enabled - 50% of events will fail'
     };
+}
+
+/**
+ * Disable error injection mode
+ */
+export function disableErrorInjection() {
+    console.log('[simulate] disabling error injection mode...');
+    State.disableErrorInjection();
+
+    return {
+        success: true,
+        message: 'Error injection disabled'
+    };
+}
+
+/**
+ * Modified generateMetric to inject errors when enabled
+ * This is called from the simulation interval
+ * @private
+ */
+function generateMetricWithPossibleError() {
+    // If error injection is enabled, 50% chance of corrupt data
+    if (State.isErrorInjectionEnabled() && Math.random() < 0.5) {
+        State.incrementErrorCount();
+        return {
+            metric: 'cpu',
+            value: 'CORRUPT_' + Math.random(), // Invalid value
+            server: 'error-injector',
+            timestamp: 'INVALID', // Invalid timestamp
+        };
+    }
+
+    return generateMetric();
 }
