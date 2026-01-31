@@ -334,6 +334,16 @@ body {
   box-shadow: 0 12px 24px rgba(245, 158, 11, 0.4);
 }
 
+.btn--warning.btn--active {
+  background: linear-gradient(135deg, var(--accent-green) 0%, #059669 100%);
+  border-color: var(--accent-green);
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+}
+
+.btn--warning.btn--active:hover {
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4);
+}
+
 .btn--secondary {
   background: linear-gradient(135deg, var(--accent-green) 0%, #059669 100%);
   color: white;

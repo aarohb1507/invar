@@ -10,6 +10,7 @@ import { EventFeed } from './event-feed.js';
 class ControlsComponent {
     constructor() {
         this.isSimulating = false;
+        this.isErrorInjectionEnabled = false;
         this.elements = {
             startSimBtn: document.getElementById('startSimBtn'),
             injectErrorBtn: document.getElementById('injectErrorBtn'),
@@ -28,9 +29,9 @@ class ControlsComponent {
             this.toggleSimulation();
         });
 
-        // Inject Error
+        // Toggle Error Injection
         this.elements.injectErrorBtn?.addEventListener('click', () => {
-            this.handleInjectError();
+            this.toggleErrorInjection();
         });
 
         // Query History
@@ -46,7 +47,9 @@ class ControlsComponent {
         try {
             const response = await API.getSimulationStatus();
             this.isSimulating = response.isSimulating;
+            this.isErrorInjectionEnabled = response.errorInjectionMode || false;
             this.updateSimulationButton();
+            this.updateErrorInjectionButton();
         } catch (err) {
             console.error('[controls] error checking simulation status:', err.message);
         }
@@ -99,23 +102,52 @@ class ControlsComponent {
     }
 
     /**
-     * Inject error into worker
+     * Toggle error injection on/off
      */
-    async handleInjectError() {
+    async toggleErrorInjection() {
         try {
             this.elements.injectErrorBtn.disabled = true;
 
-            await API.injectError();
-            EventFeed.addWarningEvent('Error injected - worker will retry processing');
+            if (this.isErrorInjectionEnabled) {
+                // Disable error injection
+                await API.disableErrorInjection();
+                this.isErrorInjectionEnabled = false;
+                EventFeed.addInfoEvent('Error injection disabled - metrics back to normal');
+                this.showToast('✅ Error injection disabled', 'info');
+            } else {
+                // Enable error injection
+                await API.injectError();
+                this.isErrorInjectionEnabled = true;
+                EventFeed.addWarningEvent('Error injection enabled - 50% of metrics will fail');
+                this.showToast('⚠️ Error injection enabled! Watch the backlog grow.', 'warning');
+            }
 
-            // Show user feedback
-            this.showToast('⚠️ Error injected! Watch the backlog chart grow.', 'warning');
-
+            this.updateErrorInjectionButton();
         } catch (err) {
-            console.error('[controls] error injecting error:', err.message);
-            alert('Failed to inject error: ' + err.message);
+            console.error('[controls] error toggling error injection:', err.message);
+            alert('Failed to toggle error injection: ' + err.message);
         } finally {
             this.elements.injectErrorBtn.disabled = false;
+        }
+    }
+
+    /**
+     * Update error injection button text based on state
+     */
+    updateErrorInjectionButton() {
+        if (!this.elements.injectErrorBtn) return;
+
+        const textEl = this.elements.injectErrorBtn.querySelector('.btn__text');
+        const iconEl = this.elements.injectErrorBtn.querySelector('.btn__icon');
+
+        if (this.isErrorInjectionEnabled) {
+            textEl.textContent = 'Disable Errors';
+            iconEl.textContent = '✅';
+            this.elements.injectErrorBtn.classList.add('btn--active');
+        } else {
+            textEl.textContent = 'Enable Errors';
+            iconEl.textContent = '⚠️';
+            this.elements.injectErrorBtn.classList.remove('btn--active');
         }
     }
 

@@ -126,7 +126,7 @@ export const API = {
     return response.json();
   },
 
-  // Inject error (NEW)
+  // Inject error (Enable error injection)
   async injectError() {
     const response = await fetch(`${this.baseUrl}/ingest/simulate/error/enable`, {
       method: 'POST',
@@ -136,6 +136,21 @@ export const API = {
 
     if (!response.ok) {
       throw new Error(`Inject error failed: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  // Disable error injection
+  async disableErrorInjection() {
+    const response = await fetch(`${this.baseUrl}/ingest/simulate/error/disable`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Disable error injection failed: ${response.status}`);
     }
 
     return response.json();
