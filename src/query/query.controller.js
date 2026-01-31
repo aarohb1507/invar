@@ -47,7 +47,7 @@ export async function getMetrics(req, res) {
     return res.json({
       success: true,
       data: {
-        metrics: result.rows,
+        rows: result.rows,
         pagination: {
           count: result.count,
           limit: result.limit,

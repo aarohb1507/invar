@@ -128,7 +128,7 @@ export const API = {
 
   // Inject error (NEW)
   async injectError() {
-    const response = await fetch(`${this.baseUrl}/ingest/simulate/error`, {
+    const response = await fetch(`${this.baseUrl}/ingest/simulate/error/enable`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

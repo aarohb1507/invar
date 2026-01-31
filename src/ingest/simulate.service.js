@@ -71,7 +71,7 @@ export function startSimulation() {
     State.setSimulating(true);
 
     simulationInterval = setInterval(async () => {
-        const payload = generateMetric();
+        const payload = generateMetricWithPossibleError();
         await ingestMetric(payload);
         State.incrementEventCount();
     }, rateMs);
