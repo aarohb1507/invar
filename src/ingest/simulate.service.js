@@ -59,8 +59,15 @@ function generateMetric() {
  * Start simulation (generates metrics at configurable rate)
  */
 export function startSimulation() {
-    if (State.isSimulating()) {
-        return { success: false, error: 'Simulation already running' };
+    // If already running, return success (idempotent)
+    if (State.isSimulating() && simulationInterval) {
+        return { success: true, message: 'Simulation already running' };
+    }
+
+    // Clean up any stale state (handles serverless cold start)
+    if (simulationInterval) {
+        clearInterval(simulationInterval);
+        simulationInterval = null;
     }
 
     // Get simulation rate from env (default 500ms = 2 events/sec)
@@ -84,15 +91,21 @@ export function startSimulation() {
 
 /**
  * Stop simulation
+ * Made idempotent - safe to call even if not running (handles serverless cold start)
  */
 export function stopSimulation() {
-    if (!State.isSimulating()) {
-        return { success: false, error: 'No simulation running' };
+    // Always succeed (idempotent) - handles state desync from serverless restart
+    if (!State.isSimulating() && !simulationInterval) {
+        console.log('[simulate] stop called but already stopped (state synced)');
+        State.setSimulating(false); // Sync state just in case
+        return { success: true, message: 'Simulation already stopped' };
     }
 
     console.log('[simulate] stopping metric generation...');
-    clearInterval(simulationInterval);
-    simulationInterval = null;
+    if (simulationInterval) {
+        clearInterval(simulationInterval);
+        simulationInterval = null;
+    }
     State.setSimulating(false);
 
     return { success: true, message: 'Simulation stopped' };

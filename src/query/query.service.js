@@ -13,7 +13,12 @@ export async function queryMetrics({
   limit = 100,
   offset = 0,
 }) {
-  if (!startTime || !endTime || !metric) throw new Error("Missing required params");
+  // Validate required params - use explicit checks to allow 0 as valid timestamp
+  if (startTime === undefined || startTime === null ||
+    endTime === undefined || endTime === null ||
+    !metric) {
+    throw new Error("Missing required params");
+  }
   if (startTime > endTime) throw new Error("startTime must be before endTime");
   if (limit > 1000) throw new Error("limit cannot exceed 1000");
 
@@ -64,9 +69,14 @@ export async function aggregateMetrics({
   aggregation = "avg",
   bucketSize = 3600,
 }) {
-  if (!startTime || !endTime || !metric) throw new Error("Missing required params");
+  // Validate required params - use explicit checks to allow 0 as valid timestamp
+  if (startTime === undefined || startTime === null ||
+    endTime === undefined || endTime === null ||
+    !metric) {
+    throw new Error("Missing required params");
+  }
   if (!["avg", "max", "min", "sum"].includes(aggregation)) throw new Error("Invalid aggregation");
-  
+
   const validAgg = aggregation.toLowerCase();
 
   try {

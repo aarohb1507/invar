@@ -33,20 +33,36 @@ async function init() {
 }
 
 /**
- * Subscribe to real-time SSE events
+ * Subscribe to real-time SSE events with auto-reconnection
  */
+let reconnectAttempts = 0;
+const MAX_RECONNECT_DELAY = 30000; // 30 seconds max
+
 function subscribeToRealtime() {
   console.log('[app] subscribing to realtime events...');
+  reconnectAttempts = 0;
 
   eventSource = API.subscribeToLive(
     (event) => {
+      // Reset reconnect attempts on successful message
+      reconnectAttempts = 0;
       // Route event to components
       Charts.onRealtimeEvent(event);
       EventFeed.onRealtimeEvent(event);
     },
     (err) => {
       console.error('[app] realtime error:', err);
-      EventFeed.addErrorEvent('Real-time connection lost');
+      EventFeed.addErrorEvent('Real-time connection lost - reconnecting...');
+
+      // Auto-reconnect with exponential backoff
+      reconnectAttempts++;
+      const delay = Math.min(3000 * Math.pow(2, reconnectAttempts - 1), MAX_RECONNECT_DELAY);
+      console.log(`[app] will retry SSE connection in ${delay}ms (attempt ${reconnectAttempts})`);
+
+      setTimeout(() => {
+        console.log('[app] attempting SSE reconnection...');
+        subscribeToRealtime();
+      }, delay);
     }
   );
 }
