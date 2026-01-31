@@ -18,6 +18,10 @@ export const pool = new Pool({
   max: 20, // Max connections in pool
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  // SSL support for production (Koyeb requires SSL)
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 // Test connection on startup
