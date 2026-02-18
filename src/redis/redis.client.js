@@ -3,7 +3,7 @@
  * 
  * Used for hot-path ingestion (non-blocking):
  * - XADD to stream 'invar:ingest' (durable, for workers/replay)
- * - PUBLISH to channel 'invar:live' (low-latency, for Socket.io bridge)
+ * - PUBLISH to channel 'invar:live' (low-latency, for SSE(Server Sent Events) bridge)
  * 
  * Connection strategy:
  * - lazyConnect: don't block server startup if Redis is temporarily down
