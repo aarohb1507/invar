@@ -44,6 +44,7 @@ simulateRouter.post('/error/enable', (req, res) => {
     return res.json(result);
 });
 
+
 // POST /v1/ingest/simulate/error/disable
 simulateRouter.post('/error/disable', (req, res) => {
     const result = disableErrorInjection();
