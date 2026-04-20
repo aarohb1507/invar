@@ -28,6 +28,7 @@ export async function ingestMetric(payload) {
   return { success: true };
 }
 
+
 // Async processing (non-blocking)
 async function processIngestAsync(event) {
   if (!isRedisConnected()) {
