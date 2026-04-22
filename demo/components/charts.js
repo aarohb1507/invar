@@ -45,7 +45,7 @@ class ChartsComponent {
                     label: 'CPU Usage',
                     data: [],
                     borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4,
@@ -61,10 +61,10 @@ class ChartsComponent {
                     x: {
                         display: true,
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
+                            color: '#1f2937',
                         },
                         ticks: {
-                            color: '#94a3b8',
+                            color: '#9ca3af',
                             maxTicksLimit: 10,
                         },
                     },
@@ -73,10 +73,10 @@ class ChartsComponent {
                         min: 0,
                         max: 100,
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
+                            color: '#1f2937',
                         },
                         ticks: {
-                            color: '#94a3b8',
+                            color: '#9ca3af',
                             callback: (value) => value + '%',
                         },
                     },
@@ -88,10 +88,10 @@ class ChartsComponent {
                     tooltip: {
                         mode: 'index',
                         intersect: false,
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        titleColor: '#f1f5f9',
-                        bodyColor: '#94a3b8',
-                        borderColor: 'rgba(96, 165, 250, 0.3)',
+                        backgroundColor: '#0f1622',
+                        titleColor: '#e5e7eb',
+                        bodyColor: '#9ca3af',
+                        borderColor: '#1f2937',
                         borderWidth: 1,
                     },
                 },
@@ -113,8 +113,8 @@ class ChartsComponent {
                 datasets: [{
                     label: 'Pending Messages',
                     data: [],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4,
@@ -130,10 +130,10 @@ class ChartsComponent {
                     x: {
                         display: true,
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
+                            color: '#1f2937',
                         },
                         ticks: {
-                            color: '#94a3b8',
+                            color: '#9ca3af',
                             maxTicksLimit: 10,
                         },
                     },
@@ -141,10 +141,10 @@ class ChartsComponent {
                         display: true,
                         min: 0,
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
+                            color: '#1f2937',
                         },
                         ticks: {
-                            color: '#94a3b8',
+                            color: '#9ca3af',
                         },
                     },
                 },
@@ -155,10 +155,10 @@ class ChartsComponent {
                     tooltip: {
                         mode: 'index',
                         intersect: false,
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        titleColor: '#f1f5f9',
-                        bodyColor: '#94a3b8',
-                        borderColor: 'rgba(96, 165, 250, 0.3)',
+                        backgroundColor: '#0f1622',
+                        titleColor: '#e5e7eb',
+                        bodyColor: '#9ca3af',
+                        borderColor: '#1f2937',
                         borderWidth: 1,
                     },
                 },
@@ -266,10 +266,10 @@ class ChartsComponent {
                 this.backlogChart.data.datasets[0].data = this.backlogData.map(d => d.value);
 
                 // Change color based on backlog size
-                const color = pending > 50 ? '#ef4444' : '#3b82f6';
+                const color = pending > 50 ? '#ef4444' : pending > 20 ? '#f59e0b' : '#10b981';
                 this.backlogChart.data.datasets[0].borderColor = color;
                 this.backlogChart.data.datasets[0].backgroundColor =
-                    pending > 50 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+                    pending > 50 ? 'rgba(239, 68, 68, 0.12)' : pending > 20 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)';
 
                 this.backlogChart.update('none');
             }

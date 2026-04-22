@@ -94,10 +94,10 @@ class ControlsComponent {
 
         if (this.isSimulating) {
             textEl.textContent = 'Stop Simulation';
-            iconEl.textContent = '⏹️';
+            iconEl.textContent = 'STOP';
         } else {
             textEl.textContent = 'Start Simulation';
-            iconEl.textContent = '▶️';
+            iconEl.textContent = 'RUN';
         }
     }
 
@@ -142,11 +142,11 @@ class ControlsComponent {
 
         if (this.isErrorInjectionEnabled) {
             textEl.textContent = 'Disable Errors';
-            iconEl.textContent = '✅';
+            iconEl.textContent = 'SAFE';
             this.elements.injectErrorBtn.classList.add('btn--active');
         } else {
             textEl.textContent = 'Enable Errors';
-            iconEl.textContent = '⚠️';
+            iconEl.textContent = 'ERR';
             this.elements.injectErrorBtn.classList.remove('btn--active');
         }
     }
@@ -212,22 +212,20 @@ class ControlsComponent {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: ${type === 'warning' ? '#f59e0b' : '#10b981'};
-      color: white;
-      padding: 16px 24px;
+      background: ${type === 'warning' ? '#f59e0b' : '#111827'};
+      color: ${type === 'warning' ? '#111827' : '#e5e7eb'};
+      border: 1px solid ${type === 'warning' ? '#f59e0b' : '#1f2937'};
+      padding: 14px 20px;
       border-radius: 10px;
-      font-size: 14px;
-      font-weight: 500;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      font-size: 13px;
+      font-weight: 600;
       z-index: 1000;
-      animation: slideIn 0.3s ease;
     `;
 
         document.body.appendChild(toast);
 
         setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
+            toast.remove();
         }, 3000);
     }
 }

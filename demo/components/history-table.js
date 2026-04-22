@@ -52,7 +52,7 @@ class HistoryTableComponent {
           <td><strong>${metric.toUpperCase()}</strong></td>
           <td>${value}%</td>
           <td>${server}</td>
-          <td><code style="font-size: 11px; color: #64748b;">${streamId.substring(0, 20)}...</code></td>
+                <td><code style="font-size: 11px; color: #9ca3af;">${streamId.substring(0, 20)}...</code></td>
         `;
 
                 this.elements.tableBody.appendChild(tr);

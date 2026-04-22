@@ -14,7 +14,7 @@
   <header class="header">
     <div class="container">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <h1 class="header__title">⚡ Invar Metrics Dashboard</h1>
+        <h1 class="header__title">Invar Metrics Dashboard</h1>
         <span class="demo-badge">DEMO MODE</span>
       </div>
       <p class="header__subtitle">
@@ -27,7 +27,7 @@
     <!-- Summary Cards -->
     <div class="summary">
       <div class="summary__card">
-        <div class="summary__icon">📊</div>
+        <div class="summary__icon">RATE</div>
         <div class="summary__content">
           <div class="summary__label">Ingestion Rate</div>
           <div class="summary__value" id="ingestionRate">0</div>
@@ -36,7 +36,7 @@
       </div>
 
       <div class="summary__card">
-        <div class="summary__icon">⏱️</div>
+        <div class="summary__icon">LAG</div>
         <div class="summary__content">
           <div class="summary__label">Real-time Lag</div>
           <div class="summary__value" id="pendingMessages">0</div>
@@ -45,7 +45,7 @@
       </div>
 
       <div class="summary__card">
-        <div class="summary__icon">⚙️</div>
+        <div class="summary__icon">WORK</div>
         <div class="summary__content">
           <div class="summary__label">Worker Status</div>
           <div class="summary__value summary__value--status" id="workerStatus">OK</div>
@@ -54,7 +54,7 @@
       </div>
 
       <div class="summary__card">
-        <div class="summary__icon">💾</div>
+        <div class="summary__icon">COLD</div>
         <div class="summary__content">
           <div class="summary__label">Cold Storage</div>
           <div class="summary__value" id="coldStorageWrites">0</div>
@@ -68,7 +68,7 @@
       <!-- Chart A: Real-Time Metrics (Hot Path) -->
       <div class="card">
         <div class="card__header">
-          <h2 class="card__title">📈 Real-Time Metrics (Hot Path)</h2>
+          <h2 class="card__title">Real-Time Metrics (Hot Path)</h2>
           <div class="card__tabs" id="metricTabs">
             <button class="tab tab--active" data-metric="cpu">CPU</button>
             <button class="tab" data-metric="memory">Memory</button>
@@ -83,7 +83,7 @@
       <!-- Chart B: Worker Backlog (Cold Path) -->
       <div class="card">
         <div class="card__header">
-          <h2 class="card__title">📦 Worker Backlog (Cold Path)</h2>
+          <h2 class="card__title">Worker Backlog (Cold Path)</h2>
         </div>
         <div class="card__body">
           <canvas id="backlogChart"></canvas>
@@ -94,19 +94,19 @@
     <!-- Controls -->
     <div class="controls">
       <button class="btn btn--primary" id="startSimBtn">
-        <span class="btn__icon">▶️</span>
+        <span class="btn__icon">RUN</span>
         <span class="btn__text">Start Simulation</span>
         <span class="btn__tooltip">Generate mock CPU/Memory/Disk metrics at 10 events/sec</span>
       </button>
 
       <button class="btn btn--warning" id="injectErrorBtn">
-        <span class="btn__icon">⚠️</span>
+        <span class="btn__icon">ERR</span>
         <span class="btn__text">Enable Errors</span>
         <span class="btn__tooltip">Toggle error injection - 50% of metrics will fail</span>
       </button>
 
       <button class="btn btn--secondary" id="queryHistoryBtn">
-        <span class="btn__icon">🔍</span>
+        <span class="btn__icon">SQL</span>
         <span class="btn__text">Query History</span>
         <span class="btn__tooltip">Fetch last 100 metrics from Postgres</span>
       </button>
@@ -116,7 +116,7 @@
     <div class="history" id="historyPanel" style="display: none;">
       <div class="card">
         <div class="card__header">
-          <h2 class="card__title">📋 Query History</h2>
+          <h2 class="card__title">Query History</h2>
           <button class="btn btn--small" id="closeHistoryBtn">✕</button>
         </div>
         <div class="card__body">
@@ -145,7 +145,7 @@
     <!-- Real-time Event Feed -->
     <div class="card">
       <div class="card__header">
-        <h2 class="card__title">⚡ Live Event Feed</h2>
+        <h2 class="card__title">Live Event Feed</h2>
         <button class="btn btn--small" id="clearFeedBtn">Clear</button>
       </div>
       <div class="card__body">

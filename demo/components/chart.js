@@ -34,13 +34,13 @@ export const ChartComponent = {
           {
             label: 'Metric Value',
             data: values,
-            borderColor: '#0366d6',
-            backgroundColor: 'rgba(3, 102, 214, 0.1)',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.12)',
             tension: 0.3,
             fill: true,
             pointRadius: 4,
-            pointBackgroundColor: '#0366d6',
-            pointBorderColor: '#fff',
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#111827',
             pointBorderWidth: 2,
           },
         ],
@@ -61,12 +61,18 @@ export const ChartComponent = {
           y: {
             beginAtZero: false,
             grid: {
-              color: '#f0f0f0',
+              color: '#1f2937',
+            },
+            ticks: {
+              color: '#9ca3af',
             },
           },
           x: {
             grid: {
-              display: false,
+              color: '#1f2937',
+            },
+            ticks: {
+              color: '#9ca3af',
             },
           },
         },

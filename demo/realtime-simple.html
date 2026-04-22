@@ -4,9 +4,53 @@
   <meta charset="utf-8" />
   <title>Invar SSE Demo</title>
   <style>
-    body{font-family:system-ui,Arial;margin:16px}
-    #log{white-space:pre-wrap;border:1px solid #ddd;padding:12px;max-height:60vh;overflow:auto}
-    .meta{color:#666;font-size:0.9em}
+    :root {
+      --bg: #0b0f14;
+      --card: #111827;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --blue: #2563eb;
+    }
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+    #log {
+      white-space: pre-wrap;
+      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 14px;
+      border-radius: 10px;
+      max-height: 60vh;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    #log::-webkit-scrollbar {
+      width: 8px;
+    }
+    #log::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    #log::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
   </style>
 </head>
 <body>
