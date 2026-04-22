@@ -18,7 +18,8 @@ import { pool } from "../db/postgres.client.js";
 
 const STREAM_NAME = "invar:ingest";
 const CONSUMER_GROUP = "invar-workers";
-const CONSUMER_NAME = `worker-${process.pid}`;
+// Use unique identifier: PID + hostname (safer in Docker)
+const CONSUMER_NAME = `worker-${process.pid}-${process.env.HOSTNAME || process.env.POD_NAME || 'local'}`;
 const DLQ_STREAM = "invar:dlq";
 
 const BATCH_SIZE = 10;
@@ -26,6 +27,7 @@ const BLOCK_TIME = 5000; // 5 seconds
 const MAX_RETRIES = 3;
 
 let isShuttingDown = false;
+let activeMessages = 0; // Track messages in-flight
 
 /**
  * Initialize consumer group (idempotent)
@@ -107,6 +109,8 @@ async function processStream() {
  * Process single message
  */
 async function processMessage(streamId, fields) {
+  activeMessages++; // Increment tracker
+  
   // Parse fields (Redis returns flat array: [key1, val1, key2, val2])
   const data = {};
   for (let i = 0; i < fields.length; i += 2) {
@@ -151,6 +155,8 @@ async function processMessage(streamId, fields) {
       // Wait before next attempt/batch to simulate backoff and backlog
       await sleep(2000);
     }
+  } finally {
+    activeMessages--; // Decrement when done (success or failure)
   }
 }
 
@@ -212,8 +218,18 @@ function setupShutdownHandlers() {
     console.log(`[worker] received ${signal}, shutting down...`);
     isShuttingDown = true;
 
-    // Give worker time to finish current batch
-    await sleep(6000);
+    // Wait for in-flight messages to complete (with 30s timeout)
+    let waitTime = 0;
+    const maxWaitTime = 30000; // 30 seconds max
+    while (activeMessages > 0 && waitTime < maxWaitTime) {
+      console.log(`[worker] waiting for ${activeMessages} messages to finish...`);
+      await sleep(1000);
+      waitTime += 1000;
+    }
+
+    if (activeMessages > 0) {
+      console.warn(`[worker] timeout waiting for messages. ${activeMessages} still in-flight.`);
+    }
 
     await redis.quit();
     await pool.end();

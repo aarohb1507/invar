@@ -63,7 +63,6 @@ export function startSimulation() {
     if (State.isSimulating() && simulationInterval) {
         return { success: true, message: 'Simulation already running' };
     }
-
     // Clean up any stale state (handles serverless cold start)
     if (simulationInterval) {
         clearInterval(simulationInterval);
