@@ -10,6 +10,8 @@ class ChartsComponent {
         this.realtimeChart = null;
         this.backlogChart = null;
         this.selectedMetric = 'cpu';
+        this.backlogPollInterval = null;
+        this.backlogTick = 0;
 
         // Real-time chart data (ring buffer of 60 points = 1 minute)
         this.realtimeData = {
@@ -241,19 +243,39 @@ class ChartsComponent {
      */
     startBacklogPolling() {
         this.updateBacklogChart();
-        setInterval(() => this.updateBacklogChart(), 2000);
+
+        if (this.backlogPollInterval) {
+            clearInterval(this.backlogPollInterval);
+        }
+
+        this.backlogPollInterval = setInterval(() => this.updateBacklogChart(), 2000);
     }
 
     async updateBacklogChart() {
         try {
             const response = await API.getDashboardStats();
-            const pending = response.data.pendingMessages;
+            const stats = response?.data || response || {};
+            const pendingRaw = stats.pendingMessages ?? stats.pending_messages ?? stats.pending ?? 0;
+            const pending = Number(pendingRaw);
+
+            if (Number.isNaN(pending)) {
+                throw new Error(`invalid pending value: ${pendingRaw}`);
+            }
+
+            const now = new Date();
+            const timeLabel = now.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+            });
 
             // Add to backlog data
             this.backlogData.push({
-                time: new Date().toLocaleTimeString(),
+                time: `${timeLabel}.${String(this.backlogTick % 100).padStart(2, '0')}`,
                 value: pending,
             });
+            this.backlogTick += 1;
 
             // Trim to max data points
             if (this.backlogData.length > this.maxDataPoints) {
