@@ -21,8 +21,9 @@ class HistoryTableComponent {
     /**
      * Show history panel with data
      */
-    show(rows) {
+    show(rows, options = {}) {
         if (!this.elements.panel || !this.elements.tableBody) return;
+        const emptyText = options.emptyText || 'No data found';
 
         // Clear existing rows
         this.elements.tableBody.innerHTML = '';
@@ -30,7 +31,7 @@ class HistoryTableComponent {
         if (!rows || rows.length === 0) {
             this.elements.tableBody.innerHTML = `
         <tr>
-          <td colspan="5" class="table__empty">No data found</td>
+          <td colspan="5" class="table__empty">${emptyText}</td>
         </tr>
       `;
         } else {
@@ -61,6 +62,7 @@ class HistoryTableComponent {
 
         // Show panel
         this.elements.panel.style.display = 'block';
+        window.dispatchEvent(new CustomEvent('history:visibility-change', { detail: { isVisible: true } }));
     }
 
     /**
@@ -69,7 +71,16 @@ class HistoryTableComponent {
     hide() {
         if (this.elements.panel) {
             this.elements.panel.style.display = 'none';
+            window.dispatchEvent(new CustomEvent('history:visibility-change', { detail: { isVisible: false } }));
         }
+    }
+
+    /**
+     * Check whether panel is currently visible
+     */
+    isVisible() {
+        if (!this.elements.panel) return false;
+        return this.elements.panel.style.display !== 'none';
     }
 }
 

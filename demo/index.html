@@ -108,7 +108,13 @@
       <button class="btn btn--secondary" id="queryHistoryBtn">
         <span class="btn__icon">SQL</span>
         <span class="btn__text">Query History</span>
-        <span class="btn__tooltip">Fetch last 100 metrics from Postgres</span>
+        <span class="btn__tooltip">Open/close query panel with cached rows</span>
+      </button>
+
+      <button class="btn btn--tertiary" id="refreshHistoryBtn">
+        <span class="btn__icon">SYNC</span>
+        <span class="btn__text">Refresh History</span>
+        <span class="btn__tooltip">Fetch latest metrics from Postgres and update cache</span>
       </button>
     </div>
 
@@ -133,7 +139,7 @@
               </thead>
               <tbody id="historyTableBody">
                 <tr>
-                  <td colspan="5" class="table__empty">Click "Query History" to load data</td>
+                  <td colspan="5" class="table__empty">Click "Refresh History" to load latest rows, then use "Query History" to toggle panel</td>
                 </tr>
               </tbody>
             </table>

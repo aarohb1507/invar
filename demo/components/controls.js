@@ -11,16 +11,20 @@ class ControlsComponent {
     constructor() {
         this.isSimulating = false;
         this.isErrorInjectionEnabled = false;
+        this.cachedHistoryRows = [];
+        this.hasHistoryCache = false;
         this.elements = {
             startSimBtn: document.getElementById('startSimBtn'),
             injectErrorBtn: document.getElementById('injectErrorBtn'),
             queryHistoryBtn: document.getElementById('queryHistoryBtn'),
+            refreshHistoryBtn: document.getElementById('refreshHistoryBtn'),
         };
     }
 
     init() {
         this.setupEventListeners();
         this.checkSimulationStatus();
+        this.updateQueryHistoryButton(false);
     }
 
     setupEventListeners() {
@@ -36,7 +40,17 @@ class ControlsComponent {
 
         // Query History
         this.elements.queryHistoryBtn?.addEventListener('click', () => {
-            this.handleQueryHistory();
+            this.toggleHistoryPanel();
+        });
+
+        // Refresh History Data
+        this.elements.refreshHistoryBtn?.addEventListener('click', () => {
+            this.refreshHistoryData();
+        });
+
+        // Keep button state in sync when panel is closed by the X button
+        window.addEventListener('history:visibility-change', (event) => {
+            this.updateQueryHistoryButton(event.detail?.isVisible || false);
         });
     }
 
@@ -152,11 +166,35 @@ class ControlsComponent {
     }
 
     /**
-     * Query history from Postgres and show table
+     * Toggle history panel open/close using cached rows
      */
-    async handleQueryHistory() {
+    toggleHistoryPanel() {
+        if (HistoryTable.isVisible()) {
+            HistoryTable.hide();
+            this.updateQueryHistoryButton(false);
+            return;
+        }
+
+        if (!this.hasHistoryCache) {
+            HistoryTable.show([], {
+                emptyText: 'No cached query yet. Click "Refresh History" to load latest rows.',
+            });
+            EventFeed.addInfoEvent('Opened query panel with cached view (no refresh yet)');
+            this.updateQueryHistoryButton(true);
+            return;
+        }
+
+        HistoryTable.show(this.cachedHistoryRows);
+        EventFeed.addInfoEvent(`Opened cached query panel (${this.cachedHistoryRows.length} rows)`);
+        this.updateQueryHistoryButton(true);
+    }
+
+    /**
+     * Fetch latest history from Postgres and refresh cache + panel
+     */
+    async refreshHistoryData() {
         try {
-            this.elements.queryHistoryBtn.disabled = true;
+            this.elements.refreshHistoryBtn.disabled = true;
 
             const endTime = Date.now();
             const startTime = endTime - 3600 * 1000; // Last hour (ms)
@@ -189,17 +227,47 @@ class ControlsComponent {
             // Take top 100
             const top100 = allResults.slice(0, 100);
 
-            // Show in history table
-            HistoryTable.show(top100);
+            // Store in browser memory cache
+            this.cachedHistoryRows = top100;
+            this.hasHistoryCache = true;
 
-            EventFeed.addInfoEvent(`Queried ${top100.length} metrics from Postgres`);
+            // Refresh visible panel with latest result
+            HistoryTable.show(this.cachedHistoryRows);
+            this.updateQueryHistoryButton(true);
+            EventFeed.addInfoEvent(`Refreshed query history (${top100.length} rows from Postgres)`);
 
         } catch (err) {
             console.error('[controls] error querying history:', err.message);
             alert('Failed to query history: ' + err.message);
         } finally {
-            this.elements.queryHistoryBtn.disabled = false;
+            this.elements.refreshHistoryBtn.disabled = false;
         }
+    }
+
+    /**
+     * Update query history button text based on panel state
+     */
+    updateQueryHistoryButton(isOpen = false) {
+        if (!this.elements.queryHistoryBtn) return;
+
+        const textEl = this.elements.queryHistoryBtn.querySelector('.btn__text');
+        const iconEl = this.elements.queryHistoryBtn.querySelector('.btn__icon');
+        const tooltipEl = this.elements.queryHistoryBtn.querySelector('.btn__tooltip');
+
+        if (isOpen) {
+            textEl.textContent = 'Close History';
+            iconEl.textContent = 'HIDE';
+            tooltipEl.textContent = 'Hide query panel (cached rows stay in memory)';
+            this.elements.queryHistoryBtn.classList.add('btn--active');
+            return;
+        }
+
+        textEl.textContent = 'Query History';
+        iconEl.textContent = 'SQL';
+        tooltipEl.textContent = this.hasHistoryCache
+            ? 'Open query panel with cached rows'
+            : 'Open query panel (refresh to fetch latest rows)';
+        this.elements.queryHistoryBtn.classList.remove('btn--active');
     }
 
     /**
