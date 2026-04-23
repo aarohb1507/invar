@@ -158,8 +158,8 @@ class ControlsComponent {
         try {
             this.elements.queryHistoryBtn.disabled = true;
 
-            const endTime = Math.floor(Date.now() / 1000);
-            const startTime = endTime - 3600; // Last hour
+            const endTime = Date.now();
+            const startTime = endTime - 3600 * 1000; // Last hour (ms)
 
             // Query all metrics (not filtered by type)
             const metrics = ['cpu', 'memory', 'disk'];
@@ -174,8 +174,9 @@ class ControlsComponent {
                         limit: 50,
                     });
 
-                    if (response.data && response.data.rows) {
-                        allResults.push(...response.data.rows);
+                    const rows = response?.data?.rows || [];
+                    if (rows.length > 0) {
+                        allResults.push(...rows);
                     }
                 } catch (err) {
                     console.warn(`[controls] failed to query ${metric}:`, err.message);

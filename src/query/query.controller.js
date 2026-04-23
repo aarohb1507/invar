@@ -6,6 +6,19 @@ import {
   getAvailableMetrics,
 } from "./query.service.js";
 
+function normalizeEpochToMs(value) {
+  const num = parseInt(value, 10);
+  if (Number.isNaN(num)) return NaN;
+
+  // If value looks like epoch seconds, convert to ms.
+  // 1e11 ~= year 5138 in seconds, safely above modern epoch-second values.
+  if (Math.abs(num) < 1e11) {
+    return num * 1000;
+  }
+
+  return num;
+}
+
 // GET /v1/metrics - raw metrics with pagination
 export async function getMetrics(req, res) {
   try {
@@ -18,8 +31,8 @@ export async function getMetrics(req, res) {
     }
 
     // Convert to numbers
-    const start = parseInt(startTime);
-    const end = parseInt(endTime);
+    const start = normalizeEpochToMs(startTime);
+    const end = normalizeEpochToMs(endTime);
     const lim = limit ? parseInt(limit) : 100;
     const off = offset ? parseInt(offset) : 0;
 
@@ -77,8 +90,8 @@ export async function getAggregateMetrics(req, res) {
     }
 
     // Convert to numbers
-    const start = parseInt(startTime);
-    const end = parseInt(endTime);
+    const start = normalizeEpochToMs(startTime);
+    const end = normalizeEpochToMs(endTime);
     const bucket = bucketSize ? parseInt(bucketSize) : 3600;
     const agg = aggregation || "avg";
 
@@ -138,8 +151,8 @@ export async function getAvailableMetricsHandler(req, res) {
     let start, end;
 
     if (startTime && endTime) {
-      start = parseInt(startTime);
-      end = parseInt(endTime);
+      start = normalizeEpochToMs(startTime);
+      end = normalizeEpochToMs(endTime);
 
       if (isNaN(start) || isNaN(end)) {
         return res.status(400).json({
