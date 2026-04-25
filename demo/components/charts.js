@@ -118,7 +118,7 @@ class ChartsComponent {
                     borderColor: '#10b981',
                     backgroundColor: 'rgba(16, 185, 129, 0.12)',
                     borderWidth: 2,
-                    fill: true,
+                    fill: false,
                     tension: 0.4,
                 }],
             },
@@ -141,7 +141,10 @@ class ChartsComponent {
                     },
                     y: {
                         display: true,
+                        beginAtZero: true,
                         min: 0,
+                        suggestedMax: 10,
+                        grace: '10%',
                         grid: {
                             color: '#1f2937',
                         },
