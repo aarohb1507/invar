@@ -28,6 +28,7 @@ const MAX_RETRIES = 3;
 
 let isShuttingDown = false;
 let activeMessages = 0; // Track messages in-flight
+const limit = 5;
 
 /**
  * Initialize consumer group (idempotent)
@@ -69,8 +70,12 @@ async function processStream() {
       if (hasPendingMessages) {
         console.log(`[worker] recovering ${pendingResults[0][1].length} pending messages...`);
         for (const [stream, messages] of pendingResults) {
-          for (const [streamId, fields] of messages) {
-            await processMessage(streamId, fields);
+          for (let i = 0; i < messages.length; i += limit) {
+            const slice = messages.slice(i, i + limit);
+            const task = slice.map(([streamId, fields]) =>
+              processMessage(streamId, fields)
+            );
+            await Promise.all(task);
           }
         }
         // If we found pending work, continue immediately to process more pending items
@@ -91,8 +96,12 @@ async function processStream() {
 
       // Process new batch
       for (const [stream, messages] of newResults) {
-        for (const [streamId, fields] of messages) {
-          await processMessage(streamId, fields);
+        for (let i = 0; i < messages.length; i += limit) {
+          const slice = messages.slice(i, i + limit);
+          const task = slice.map(([streamId, fields]) =>
+            processMessage(streamId, fields)
+          );
+          await Promise.all(task);
         }
       }
 
