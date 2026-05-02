@@ -40,10 +40,6 @@ services:
   postgres:
     image: postgres:15
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-invar}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-invar}
-      POSTGRES_DB: ${POSTGRES_DB:-invar}
     env_file:
       - ./.env.production
     ports:

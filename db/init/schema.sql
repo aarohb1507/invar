@@ -7,13 +7,15 @@
 -- Metrics table (cold storage)
 CREATE TABLE IF NOT EXISTS metrics (
   id BIGSERIAL PRIMARY KEY,
+  stream_id TEXT NOT NULL,
   payload JSONB NOT NULL,
   timestamp BIGINT NOT NULL,
   received_at TIMESTAMPTZ NOT NULL,
   ingested_at TIMESTAMPTZ DEFAULT NOW(),
   
   -- Constraints
-  CONSTRAINT metrics_timestamp_check CHECK (timestamp > 0)
+  CONSTRAINT metrics_timestamp_check CHECK (timestamp > 0),
+  CONSTRAINT metrics_stream_id_unique UNIQUE (stream_id)
 );
 
 -- Index for time-range queries (most common)

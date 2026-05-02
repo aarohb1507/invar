@@ -13,15 +13,17 @@ import { env } from "../config/env.js";
 const { Pool } = pg;
 
 // Connection pool (reuses connections)
+const sslEnabled =
+  process.env.PG_SSL === "true" ||
+  (process.env.PG_SSL !== "false" && process.env.NODE_ENV === "production");
+
 export const pool = new Pool({
   connectionString: env.databaseUrl,
   max: 20, // Max connections in pool
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
   // SSL support for production (Koyeb requires SSL)
-  ssl: process.env.NODE_ENV === 'production'
-    ? { rejectUnauthorized: false }
-    : false,
+  ssl: sslEnabled ? { rejectUnauthorized: false } : false,
 });
 
 // Test connection on startup

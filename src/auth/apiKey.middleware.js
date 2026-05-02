@@ -30,7 +30,7 @@ function getApiKeyFromRequest(req) {
     const pairs = cookieHeader.split(";").map((c) => c.trim());
     for (const p of pairs) {
       const [k, ...rest] = p.split("=");
-      if (k === "invar_api_key") {
+      if (k === "invar_api_key") { 
         keyFromCookie = decodeURIComponent(rest.join("="));
         break;
       }

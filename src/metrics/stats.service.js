@@ -111,8 +111,8 @@ async function getColdStorageWrites() {
 
         const result = await pool.query(
             `SELECT COUNT(*) as count 
-       FROM metrics 
-       WHERE ingested_at >= $1`,
+             FROM metrics 
+             WHERE ingested_at >= $1`,
             [oneMinuteAgo]
         );
 
