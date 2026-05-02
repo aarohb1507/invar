@@ -28,7 +28,7 @@ const MAX_RETRIES = 3;
 
 let isShuttingDown = false;
 let activeMessages = 0; // Track messages in-flight
-const limit = 5;
+const limit = 10
 
 /**
  * Initialize consumer group (idempotent)
